@@ -1,0 +1,19 @@
+# One owner per folder. GitHub asks the owner to review every pull request
+# that changes files in their folder.
+# TODO: replace the placeholder usernames with real GitHub usernames.
+
+# Role 1: Environment and automation (also owns everything not listed below)
+*               @role1-user
+/infra/         @role1-user
+/automation/    @role1-user
+/.github/       @role1-user
+
+# Role 2: Traffic generation
+/traffic/       @role2-user
+
+# Role 3: Filtering policies
+/policies/      @role3-user
+
+# Role 4: Measurement and analysis
+/analysis/      @role4-user
+/results/       @role4-user
