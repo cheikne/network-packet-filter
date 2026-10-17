@@ -48,6 +48,9 @@ for c in $CLIENTS; do
     docker exec "$c" sh -c "dig +short +time=2 +tries=1 @$SERVER server.lab | grep -qx $SERVER"
   check "$c: SSH banner" \
     docker exec "$c" timeout 3 bash -c "exec 3<>/dev/tcp/$SERVER/22 && head -c 7 <&3 | grep -q SSH-2.0"
+  check "$c: SSH login with the lab account" \
+    docker exec "$c" sh -c "timeout 10 sshpass -p \"\$LAB_SSH_PASSWORD\" ssh -o StrictHostKeyChecking=no \
+      -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 \"\$LAB_SSH_USER@$SERVER\" true"
   check "$c: server log shows the real client IP (no NAT)" \
     docker exec server sh -c "grep -q \"^$(docker exec "$c" hostname -i | awk '{print $1}') \" /var/log/lab/nginx_access.log"
 done

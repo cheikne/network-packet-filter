@@ -40,7 +40,7 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 | Rules between roles (below) | Done |
 | Docker testbed (4 nodes, 2 isolated networks) | Done |
 | Firewall routing, server services, connectivity test | Done |
-| Client tools | Not yet |
+| Client tools (legit, susp) | Done |
 | Experiment runner | Not yet |
 | Makefile and full setup guide | Not yet |
 
@@ -65,7 +65,10 @@ docker compose up -d --build  # start the lab
 docker exec -it fw bash       # open a shell on a node (fw, server, legit, susp)
 docker compose down           # stop the lab
 cd .. && ./infra/tests/connectivity.sh   # check the lab (all lines must say PASS)
+./infra/tests/tools.sh                   # check all tools are installed
 ```
+
+Tools on the clients (`legit`, `susp`): `curl`, `wrk`, `dig`, `ssh`, `sshpass`, `nmap`, `hping3`, `python3` with Scapy. The SSH login is available in each client as `$LAB_SSH_USER` and `$LAB_SSH_PASSWORD`.
 
 `fw` starts with no rules (Baseline). Services on `server` (`10.0.2.10`):
 
