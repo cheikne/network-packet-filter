@@ -1,0 +1,71 @@
+# Lab testbed: 4 nodes on 2 isolated networks.
+# Run from the infra/ folder:  docker compose up -d --build
+# Settings (which clients to start, CPU, memory) are in infra/.env.
+#
+# Safety: both networks are "internal" (no internet) and no ports are
+# published to the host. Do not add "ports:" or non-internal networks.
+
+name: pflab
+
+# Settings shared by every node
+x-node: &node
+  init: true                       # clean shutdown of "sleep infinity"
+  command: ["sleep", "infinity"]   # keep the container running
+  cap_add: [NET_ADMIN, NET_RAW]    # needed for nftables, routes, raw packets
+  volumes:
+    - ..:/project                  # the whole repository, same path everywhere
+  cpus: ${NODE_CPUS:-1}
+  mem_limit: ${NODE_MEMORY:-512m}
+
+services:
+  fw:
+    <<: *node
+    build: { context: ./images, target: fw }
+    image: pflab/fw
+    container_name: fw
+    hostname: fw
+    networks:
+      client_net: { ipv4_address: 10.0.1.1, interface_name: eth1 }
+      server_net: { ipv4_address: 10.0.2.1, interface_name: eth2 }
+
+  server:
+    <<: *node
+    build: { context: ./images, target: server }
+    image: pflab/server
+    container_name: server
+    hostname: server
+    networks:
+      server_net: { ipv4_address: 10.0.2.10 }
+
+  legit:
+    <<: *node
+    profiles: [legit]
+    build: { context: ./images, target: client }
+    image: pflab/legit
+    container_name: legit
+    hostname: legit
+    networks:
+      client_net: { ipv4_address: 10.0.1.10 }
+
+  susp:
+    <<: *node
+    profiles: [susp]
+    build: { context: ./images, target: client }
+    image: pflab/susp
+    container_name: susp
+    hostname: susp
+    networks:
+      client_net: { ipv4_address: 10.0.1.20 }
+
+networks:
+  # Docker's own gateway is moved to .254 so fw can use .1
+  client_net:
+    internal: true
+    ipam:
+      config:
+        - { subnet: 10.0.1.0/24, gateway: 10.0.1.254 }
+  server_net:
+    internal: true
+    ipam:
+      config:
+        - { subnet: 10.0.2.0/24, gateway: 10.0.2.254 }

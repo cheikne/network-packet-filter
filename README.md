@@ -38,7 +38,7 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 |---|---|
 | Repository skeleton | Done |
 | Rules between roles (below) | Done |
-| Docker testbed | Not yet |
+| Docker testbed (4 nodes, 2 isolated networks) | Done |
 | Firewall and server setup | Not yet |
 | Client tools | Not yet |
 | Experiment runner | Not yet |
@@ -56,7 +56,17 @@ Follow these so everyone's parts fit together. Inside your own folder, do what y
 
 ## How to run
 
-Not available yet. The testbed is coming in the next steps. This section will explain how to start it on macOS and on Windows (WSL2).
+You need Docker Desktop (macOS, or Windows with a WSL2 Ubuntu terminal).
+
+```sh
+cd infra
+cp .env.example .env          # once; edit it to choose clients and resources
+docker compose up -d --build  # start the lab
+docker exec -it fw bash       # open a shell on a node (fw, server, legit, susp)
+docker compose down           # stop the lab
+```
+
+Routing through `fw` and the services on `server` are not set up yet.
 
 ## Working together without conflicts
 
