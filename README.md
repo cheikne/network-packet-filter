@@ -43,7 +43,7 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 | Client tools (legit, susp) | Done |
 | Policy loader (`apply_policy.sh`) | Done |
 | Experiment runner | Minimal: metadata + client logs. Captures, counters, CPU, server logs coming later |
-| Makefile and full setup guide | Not yet |
+| Makefile and setup guide | Done |
 
 ## Rules between roles
 
@@ -55,21 +55,56 @@ Follow these so everyone's parts fit together. Inside your own folder, do what y
 - **Results (Role 1 → Role 4):** each run creates `results/raw/<run_id>/` with `metadata.json`, the captures from `fw` (`m1.pcap` client side, `m2.pcap` server side), firewall counters, client logs, and server logs. Run ID format: `<date>-<time>_<config>_<scenario>_r<NN>`.
 - **Official measurements** are done on one machine only, so performance numbers can be compared.
 
-## How to run
+## Getting started
 
-You need Docker Desktop (macOS, or Windows with a WSL2 Ubuntu terminal).
+### 1. Install
+
+| | macOS | Windows |
+|---|---|---|
+| Docker | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Docker Desktop with the **WSL2** backend, and an **Ubuntu** WSL terminal |
+| Git, make, Python 3 | already installed (if asked, accept the "command line developer tools") | in the Ubuntu terminal: `sudo apt install git make python3-pip` |
+| PyYAML | `pip3 install pyyaml` | `pip3 install pyyaml` (or `sudo apt install python3-yaml`) |
+
+**Windows:** do everything in the Ubuntu (WSL) terminal, and clone the repository **inside WSL** (for example in `~/`), not in `C:\` or `/mnt/c/`. It is much faster and the scripts keep the right line endings.
+
+### 2. First time
 
 ```sh
-cd infra
-cp .env.example .env          # once; edit it to choose clients and resources
-docker compose up -d --build  # start the lab
-docker exec -it fw bash       # open a shell on a node (fw, server, legit, susp)
-docker compose down           # stop the lab
-cd .. && ./infra/tests/connectivity.sh   # check the lab (all lines must say PASS)
-./infra/tests/tools.sh                   # check all tools are installed
+git clone https://github.com/cheikne/network-packet-filter.git
+cd network-packet-filter
+make setup     # creates infra/.env and checks Docker and PyYAML
 ```
 
-Tools on the clients (`legit`, `susp`): `curl`, `wrk`, `dig`, `ssh`, `sshpass`, `nmap`, `hping3`, `python3` with Scapy. The SSH login is available in each client as `$LAB_SSH_USER` and `$LAB_SSH_PASSWORD`.
+Edit `infra/.env`: set `LAB_SSH_USER` and `LAB_SSH_PASSWORD` (ask the team for the shared values). You can also choose which clients to start and the CPU/memory per node.
+
+```sh
+make up        # build and start the lab (first time: a few minutes)
+make test      # every line must say PASS
+```
+
+### 3. Daily use
+
+| Command | What it does |
+|---|---|
+| `make up` / `make down` | start / stop the lab |
+| `make status` | show the running nodes |
+| `make shell N=legit` | open a shell on a node (`fw`, `server`, `legit`, `susp`) |
+| `make test` | check connectivity and tools |
+| `make policy P=p1_basic` | load `policies/p1_basic.nft` into `fw` (`P=baseline`: no rules) |
+| `make run C=baseline S=A R=1` | run an experiment (add `D=10` for a 10-second run) |
+
+Type `make` to see this list in the terminal.
+
+### 4. If something goes wrong
+
+- **"Docker is not running" / "Cannot connect to the Docker daemon":** start Docker Desktop and wait until it says "running".
+- **"set LAB_SSH_USER in infra/.env":** run `make setup`, then fill in the SSH values in `infra/.env`.
+- **A test says FAIL:** run `make down` then `make up`, and test again. If it still fails, run `make logs` and send the output to Role 1.
+- **You changed a Dockerfile or `infra/server/` file:** run `make up` again; it rebuilds what changed.
+
+## The lab
+
+Tools on the clients (`legit`, `susp`): `curl`, `wrk`, `dig`, `ssh`, `sshpass`, `nmap`, `hping3`, `python3` with Scapy. The SSH login is available in each client as `$LAB_SSH_USER` and `$LAB_SSH_PASSWORD`. The repository is at `/project` in every node.
 
 `fw` starts with no rules (Baseline). Services on `server` (`10.0.2.10`):
 
@@ -83,18 +118,7 @@ Server logs (nginx, dnsmasq, sshd) are in `/var/log/lab/` on `server`.
 
 ## Policies and experiments
 
-Run these from the repository root, with the lab started.
-
-```sh
-./automation/apply_policy.sh p1_basic    # load policies/p1_basic.nft into fw
-./automation/apply_policy.sh baseline    # remove all rules
-```
-
-The runner needs PyYAML once: `pip3 install pyyaml`.
-
-```sh
-python3 automation/run_experiment.py --config baseline --scenario A --reps 1
-```
+With the lab started, `make policy P=<name>` loads a policy and `make run C=<config> S=<scenario> R=<reps>` runs an experiment. They call `automation/apply_policy.sh` and `automation/run_experiment.py`, which you can also run directly.
 
 Each run creates `results/raw/<run_id>/` with `metadata.json` and `clients/<node>/` logs. Configurations, scenarios, repetitions, and duration are in `automation/config/experiments.yaml`. Role 2 adds the traffic commands there; Role 3 checks the policy names.
 
