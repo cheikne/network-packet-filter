@@ -41,7 +41,8 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 | Docker testbed (4 nodes, 2 isolated networks) | Done |
 | Firewall routing, server services, connectivity test | Done |
 | Client tools (legit, susp) | Done |
-| Experiment runner | Not yet |
+| Policy loader (`apply_policy.sh`) | Done |
+| Experiment runner | Minimal: metadata + client logs. Captures, counters, CPU, server logs coming later |
 | Makefile and full setup guide | Not yet |
 
 ## Rules between roles
@@ -79,6 +80,23 @@ Tools on the clients (`legit`, `susp`): `curl`, `wrk`, `dig`, `ssh`, `sshpass`, 
 | SSH | user and password from `LAB_SSH_USER` / `LAB_SSH_PASSWORD` in `infra/.env` (ask the team for the shared values) |
 
 Server logs (nginx, dnsmasq, sshd) are in `/var/log/lab/` on `server`.
+
+## Policies and experiments
+
+Run these from the repository root, with the lab started.
+
+```sh
+./automation/apply_policy.sh p1_basic    # load policies/p1_basic.nft into fw
+./automation/apply_policy.sh baseline    # remove all rules
+```
+
+The runner needs PyYAML once: `pip3 install pyyaml`.
+
+```sh
+python3 automation/run_experiment.py --config baseline --scenario A --reps 1
+```
+
+Each run creates `results/raw/<run_id>/` with `metadata.json` and `clients/<node>/` logs. Configurations, scenarios, repetitions, and duration are in `automation/config/experiments.yaml`. Role 2 adds the traffic commands there; Role 3 checks the policy names.
 
 ## Working together without conflicts
 
