@@ -13,11 +13,28 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /project
 
-# Firewall node (nftables, conntrack, tcpdump are added in Step 4)
+# Firewall node
 FROM base AS fw
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends nftables conntrack tcpdump \
+ && rm -rf /var/lib/apt/lists/*
 
-# Server node (nginx, dnsmasq, openssh are added in Step 4)
+# Server node: nginx (HTTP/HTTPS), dnsmasq (DNS), OpenSSH
 FROM base AS server
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      nginx openssl dnsmasq-base openssh-server \
+ && rm -rf /var/lib/apt/lists/*
+# Self-signed certificate for HTTPS (created at build time, never in Git)
+RUN openssl req -x509 -nodes -newkey rsa:2048 -days 3650 -subj "/CN=server.lab" \
+      -keyout /etc/ssl/private/lab.key -out /etc/ssl/certs/lab.crt
+# The SSH lab account is created at startup from infra/.env (node_start.sh)
 
-# Client nodes (traffic tools are added in Step 5)
+# Client nodes (more traffic tools are added in Step 5)
 FROM base AS client
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl dnsutils \
+ && rm -rf /var/lib/apt/lists/*

@@ -39,7 +39,7 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 | Repository skeleton | Done |
 | Rules between roles (below) | Done |
 | Docker testbed (4 nodes, 2 isolated networks) | Done |
-| Firewall and server setup | Not yet |
+| Firewall routing, server services, connectivity test | Done |
 | Client tools | Not yet |
 | Experiment runner | Not yet |
 | Makefile and full setup guide | Not yet |
@@ -64,9 +64,18 @@ cp .env.example .env          # once; edit it to choose clients and resources
 docker compose up -d --build  # start the lab
 docker exec -it fw bash       # open a shell on a node (fw, server, legit, susp)
 docker compose down           # stop the lab
+cd .. && ./infra/tests/connectivity.sh   # check the lab (all lines must say PASS)
 ```
 
-Routing through `fw` and the services on `server` are not set up yet.
+`fw` starts with no rules (Baseline). Services on `server` (`10.0.2.10`):
+
+| Service | How to reach it |
+|---|---|
+| HTTP / HTTPS | `http://10.0.2.10/`, `https://10.0.2.10/` (self-signed, use `curl -k`), large file `/large.bin` |
+| DNS | `dig @10.0.2.10 server.lab` (also `www.lab`) |
+| SSH | user and password from `LAB_SSH_USER` / `LAB_SSH_PASSWORD` in `infra/.env` (ask the team for the shared values) |
+
+Server logs (nginx, dnsmasq, sshd) are in `/var/log/lab/` on `server`.
 
 ## Working together without conflicts
 

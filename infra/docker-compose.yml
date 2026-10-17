@@ -9,11 +9,18 @@ name: pflab
 
 # Settings shared by every node
 x-node: &node
-  init: true                       # clean shutdown of "sleep infinity"
-  command: ["sleep", "infinity"]   # keep the container running
+  init: true                       # clean shutdown of the node
+  command: ["bash", "/project/infra/node_start.sh"]   # routes, services, then stay running
   cap_add: [NET_ADMIN, NET_RAW]    # needed for nftables, routes, raw packets
   volumes:
     - ..:/project                  # the whole repository, same path everywhere
+  sysctls:
+    net.ipv6.conf.all.disable_ipv6: 1   # IPv4 only: keeps captures clean
+  environment:
+    # SSH lab account: created on server, readable by traffic scripts on clients
+    LAB_SSH_USER: ${LAB_SSH_USER:?set LAB_SSH_USER in infra/.env}
+    LAB_SSH_PASSWORD: ${LAB_SSH_PASSWORD:?set LAB_SSH_PASSWORD in infra/.env}
+    LARGE_FILE_MB: ${LARGE_FILE_MB:-50}   # size of /large.bin on server
   cpus: ${NODE_CPUS:-1}
   mem_limit: ${NODE_MEMORY:-512m}
 
@@ -24,6 +31,9 @@ services:
     image: pflab/fw
     container_name: fw
     hostname: fw
+    sysctls:
+      net.ipv6.conf.all.disable_ipv6: 1
+      net.ipv4.ip_forward: 1            # fw routes packets between the networks
     networks:
       client_net: { ipv4_address: 10.0.1.1, interface_name: eth1 }
       server_net: { ipv4_address: 10.0.2.1, interface_name: eth2 }
@@ -58,13 +68,18 @@ services:
       client_net: { ipv4_address: 10.0.1.20 }
 
 networks:
-  # Docker's own gateway is moved to .254 so fw can use .1
+  # macvlan + internal = a private virtual switch with no link to the host or
+  # the internet. (Docker "bridge" internal networks drop routed packets, so
+  # fw could not forward between them.) The .254 gateway is a placeholder that
+  # Docker requires; it is not used, so fw can use .1.
   client_net:
+    driver: macvlan
     internal: true
     ipam:
       config:
         - { subnet: 10.0.1.0/24, gateway: 10.0.1.254 }
   server_net:
+    driver: macvlan
     internal: true
     ipam:
       config:
