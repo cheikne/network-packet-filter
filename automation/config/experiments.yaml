@@ -1,0 +1,37 @@
+# Experiment plan, read by automation/run_experiment.py.
+
+duration: 60       # seconds per run
+repetitions: 10    # runs per configuration and scenario
+
+# Configuration name -> policy name.
+# The policy is the file policies/<policy>.nft (Role 3), loaded with
+# automation/apply_policy.sh. Policy names are proposals: Role 3 can rename them.
+configurations:
+  baseline: baseline
+  p1: p1_basic
+  p2: p2_stateful
+  p3_low: p3_low
+  p3_med: p3_med
+  p3_high: p3_high
+  p4: p4
+
+# Scenario name -> traffic commands. All commands of a scenario start at the
+# same time. Each command has:
+#   node: legit or susp
+#   cmd:  shell command run inside that node. Placeholders:
+#         {target}   server IP (10.0.2.10)
+#         {duration} run duration in seconds
+#         {output}   folder for this command's logs (inside the node)
+# Role 2 fills these in, for example:
+#   cmd: "python3 /project/traffic/legitimate/http.py --target {target} --duration {duration} --output {output}"
+scenarios:
+  A:                # legitimate only. Dummy ping until Role 2's scripts exist.
+    - node: legit
+      cmd: "ping -c {duration} -i 1 {target} > {output}/ping.log"
+  B-synscan: []     # suspicious only, one attack type at a time
+  B-nullscan: []
+  B-finscan: []
+  B-xmasscan: []
+  B-synflood: []
+  B-sshbrute: []
+  C: []             # mixed: legitimate + suspicious
