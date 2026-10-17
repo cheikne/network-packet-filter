@@ -37,12 +37,22 @@ All traffic between the clients and the server goes through `fw`. The lab networ
 | Part | Status |
 |---|---|
 | Repository skeleton | Done |
-| Conventions and Git workflow | Not yet |
+| Rules between roles (below) | Done |
 | Docker testbed | Not yet |
 | Firewall and server setup | Not yet |
 | Client tools | Not yet |
 | Experiment runner | Not yet |
 | Makefile and full setup guide | Not yet |
+
+## Rules between roles
+
+Follow these so everyone's parts fit together. Inside your own folder, do what you want.
+
+- **Network:** use the names and IPs from the table above. On `fw`, `eth1` is the client side and `eth2` is the server side. The repository is mounted at `/project` in every container.
+- **Policies (Role 3):** one file per policy, `policies/<name>.nft`. It starts with `flush ruleset` and puts rate thresholds as variables at the top. It is loaded with `automation/apply_policy.sh <name>`. Do not hard-code the `legit` or `susp` addresses.
+- **Traffic scripts (Role 2):** runnable from the command line with `--target`, `--duration`, and `--output <dir>` (plus `--rate` when relevant). Each script writes its log into the output folder.
+- **Results (Role 1 → Role 4):** each run creates `results/raw/<run_id>/` with `metadata.json`, the captures from `fw` (`m1.pcap` client side, `m2.pcap` server side), firewall counters, client logs, and server logs. Run ID format: `<date>-<time>_<config>_<scenario>_r<NN>`.
+- **Official measurements** are done on one machine only, so performance numbers can be compared.
 
 ## How to run
 
@@ -55,5 +65,3 @@ Not available yet. The testbed is coming in the next steps. This section will ex
 3. **Keep pull requests small**, one topic each. Update your branch from `main` before you open one.
 4. **The owner of the folder reviews the pull request** (enforced by `.github/CODEOWNERS`).
 5. **Never commit** packet captures (`*.pcap`), `results/raw/`, or secrets.
-
-The detailed Git workflow will be in `CONTRIBUTING.md`, and the interface contracts between roles will be in `docs/conventions.md` (coming soon).
