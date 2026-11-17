@@ -25,13 +25,48 @@ configurations:
 # Role 2 fills these in, for example:
 #   cmd: "python3 /project/traffic/legitimate/http.py --target {target} --duration {duration} --output {output}"
 scenarios:
-  A:                # legitimate only. Dummy ping until Role 2's scripts exist.
+  A:
     - node: legit
-      cmd: "ping -c {duration} -i 1 {target} > {output}/ping.log"
-  B-synscan: []     # suspicious only, one attack type at a time
-  B-nullscan: []
-  B-finscan: []
-  B-xmasscan: []
-  B-synflood: []
-  B-sshbrute: []
-  C: []             # mixed: legitimate + suspicious
+      cmd: "python3 /project/traffic/legitimate/http_traffic.py --target {target} --duration {duration} --rate 20 --output {output}"
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/dns.py --target {target} --duration {duration} --rate 10 --output {output}"
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/ssh.py --target {target} --duration {duration} --rate 1 --output {output}"
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/download.py --target {target} --duration {duration} --output {output}"
+
+  B-synscan:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/scan.py --type syn --target {target} --duration {duration} --output {output}"
+
+  B-nullscan:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/scan.py --type null --target {target} --duration {duration} --output {output}"
+
+  B-finscan:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/scan.py --type fin --target {target} --duration {duration} --output {output}"
+
+  B-xmasscan:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/scan.py --type xmas --target {target} --duration {duration} --output {output}"
+
+  B-synflood:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/synflood.py --target {target} --duration {duration} --rate 20 --output {output}"
+
+  B-sshbrute:
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/sshbrute.py --target {target} --duration {duration} --rate 5 --output {output}"
+
+  C:
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/http_traffic.py --target {target} --duration {duration} --rate 20 --output {output}"
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/dns.py --target {target} --duration {duration} --rate 10 --output {output}"
+    - node: legit
+      cmd: "python3 /project/traffic/legitimate/ssh.py --target {target} --duration {duration} --rate 1 --output {output}"
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/scan.py --type syn --target {target} --duration {duration} --output {output}"
+    - node: susp
+      cmd: "python3 /project/traffic/suspicious/sshbrute.py --target {target} --duration {duration} --rate 5 --output {output}"
