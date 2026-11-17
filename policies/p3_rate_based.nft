@@ -1,0 +1,13 @@
+# Rules on IP address, port, and protocol, with default drop
+# Limits on new connections per second
+flush ruleset
+
+table inet filter {
+    chain forward {
+        # Default drop
+        type filter hook forward priority 0; policy drop;
+        
+        # Allow legit DNS
+        
+    }
+}
