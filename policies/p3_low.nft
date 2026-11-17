@@ -1,0 +1,24 @@
+# Rules on IP address, port, and protocol, with default drop
+# Limits on new connections per second
+flush ruleset
+
+table inet filter {
+    chain forward {
+        type filter hook forward priority 0; policy drop;
+
+        # Meter new connections at 5 per second.
+        iifname "eth1" ip daddr 10.0.2.10 ct state new \
+            (tcp dport { 22, 53, 443 } or udp dport 53) \
+            meter new_connections { ip saddr limit rate over 5/second burst 5 packets } drop
+
+        # Allow legitimate client DNS
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 udp dport 53 accept
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 53 accept
+
+        # Allow legitimate client HTTPS
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 443 accept
+
+        # Allow SSH
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 22 accept
+    }
+}
