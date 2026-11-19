@@ -2,9 +2,9 @@
 flush ruleset
 
 table inet filter {
-    chain input {
+    chain forward {
         # Drop by default
-        type filter hook input priority 0; policy drop;
+        type filter hook forward priority 0; policy drop;
 
         # Allow legit client DNS
         ip saddr 10.0.1.10 ip daddr 10.0.2.10 udp dport 53 accept
