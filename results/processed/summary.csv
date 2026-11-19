@@ -1,0 +1,16 @@
+run_id,configuration,scenario,repetition,traffic_type,total_events,success_rate,avg_latency_ms,avg_throughput_mbps
+20261117-150534_baseline_A_r01,baseline,A,1,dns,100,1.0,43.584,
+20261117-150534_baseline_A_r01,baseline,A,1,download,1,1.0,,567.256
+20261117-150534_baseline_A_r01,baseline,A,1,http,200,1.0,5.133,
+20261117-150534_baseline_A_r01,baseline,A,1,ssh,10,1.0,64.627,
+20261117-150610_baseline_B-synscan_r01,baseline,B-synscan,1,synscan,143,,,
+20261117-150621_baseline_B-nullscan_r01,baseline,B-nullscan,1,nullscan,53,,,
+20261117-150632_baseline_B-finscan_r01,baseline,B-finscan,1,finscan,53,,,
+20261117-150643_baseline_B-xmasscan_r01,baseline,B-xmasscan,1,xmasscan,54,,,
+20261117-150654_baseline_B-synflood_r01,baseline,B-synflood,1,synflood,1,,,
+20261117-150705_baseline_B-sshbrute_r01,baseline,B-sshbrute,1,sshbrute,50,1.0,0.945,
+20261117-150752_baseline_C_r01,baseline,C,1,dns,100,1.0,22.85,
+20261117-150752_baseline_C_r01,baseline,C,1,http,200,1.0,1.156,
+20261117-150752_baseline_C_r01,baseline,C,1,ssh,10,1.0,10.329,
+20261117-150752_baseline_C_r01,baseline,C,1,sshbrute,50,1.0,0.321,
+20261117-150752_baseline_C_r01,baseline,C,1,synscan,127,,,
