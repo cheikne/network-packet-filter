@@ -19,7 +19,7 @@ help:
 	@echo "make down                      stop the lab"
 	@echo "make status                    show the running nodes"
 	@echo "make logs                      show the nodes' startup logs"
-	@echo "make test                      check connectivity and tools"
+	@echo "make test                      check connectivity, tools, and policies"
 	@echo "make shell N=fw                open a shell on a node (fw, server, legit, susp)"
 	@echo "make policy P=p1_basic         load policies/<P>.nft into fw (baseline = no rules)"
 	@echo "make run C=baseline S=A R=1    run an experiment (add D=10 for a short run)"
@@ -47,6 +47,8 @@ logs:
 test:
 	./infra/tests/connectivity.sh
 	./infra/tests/tools.sh
+	# Cannot directly run p1_tests.sh; needs a bash command
+	bash ./infra/tests/p1_tests.sh
 
 shell:
 	docker exec -it $(strip $(N)) bash

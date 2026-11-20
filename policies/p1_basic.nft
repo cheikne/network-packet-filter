@@ -1,0 +1,23 @@
+# Stateless rules on IP address, port, and protocol, with a default drop.
+flush ruleset
+
+table inet filter {
+    chain forward {
+        # Drop by default
+        type filter hook forward priority 0; policy drop;
+
+        # Allow legit client DNS
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 udp dport 53 accept
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 53 accept
+
+        # Allow legit client HTTPS
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 443 accept
+
+        # Allow SSH
+        ip saddr 10.0.1.10 ip daddr 10.0.2.10 tcp dport 22 accept
+
+        # Allow stateless replies from the server for the allowed services
+        ip saddr 10.0.2.10 ip daddr 10.0.1.10 udp sport 53 accept
+        ip saddr 10.0.2.10 ip daddr 10.0.1.10 tcp sport { 22, 53, 443 } accept
+    }
+}
