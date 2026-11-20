@@ -47,7 +47,8 @@ logs:
 test:
 	./infra/tests/connectivity.sh
 	./infra/tests/tools.sh
-	./infra/tests/p1_tests.sh
+	# Cannot directly run p1_tests.sh; needs a bash command
+	bash ./infra/tests/p1_tests.sh
 
 shell:
 	docker exec -it $(strip $(N)) bash
